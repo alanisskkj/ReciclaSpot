@@ -11,6 +11,7 @@ import Mapa from './src/screens/Mapa';
 import Detalhes from './src/screens/Detalhes';
 import Perfil from './src/screens/Perfil';
 import Favoritos from './src/screens/Favoritos';
+import { FavoritesProvider } from './src/contexts/FavoritesContext';
 import { BottomTabParamList, RootStackParamList } from './src/types/navigations';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -18,28 +19,30 @@ const Tab = createBottomTabNavigator<BottomTabParamList>();
 
 function MainTabs() {
   return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarActiveTintColor: '#1E7334',
-        tabBarInactiveTintColor: '#5A6E58',
-        tabBarStyle: { backgroundColor: '#FFFFFF', height: 60, paddingBottom: 8 },
-        tabBarIcon: ({ color, size }) => {
-          const icons: Record<keyof BottomTabParamList, keyof typeof Ionicons.glyphMap> = {
-            Explorar: 'leaf',
-            Mapa: 'map',
-            Favoritos: 'heart',
-            Perfil: 'person',
-          };
-          return <Ionicons name={icons[route.name]} size={size} color={color} />;
-        },
-      })}
-    >
-      <Tab.Screen name="Explorar" component={Home} options={{ title: 'Início' }} />
-      <Tab.Screen name="Mapa" component={Mapa} />
-      <Tab.Screen name="Favoritos" component={Favoritos} />
-      <Tab.Screen name="Perfil" component={Perfil} />
-    </Tab.Navigator>
+    <FavoritesProvider>
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          headerShown: false,
+          tabBarActiveTintColor: '#1E7334',
+          tabBarInactiveTintColor: '#5A6E58',
+          tabBarStyle: { backgroundColor: '#FFFFFF', height: 60, paddingBottom: 8 },
+          tabBarIcon: ({ color, size }) => {
+            const icons: Record<keyof BottomTabParamList, keyof typeof Ionicons.glyphMap> = {
+              Explorar: 'leaf',
+              Mapa: 'map',
+              Favoritos: 'heart',
+              Perfil: 'person',
+            };
+            return <Ionicons name={icons[route.name]} size={size} color={color} />;
+          },
+        })}
+      >
+        <Tab.Screen name="Explorar" component={Home} options={{ title: 'Início' }} />
+        <Tab.Screen name="Mapa" component={Mapa} />
+        <Tab.Screen name="Favoritos" component={Favoritos} />
+        <Tab.Screen name="Perfil" component={Perfil} />
+      </Tab.Navigator>
+    </FavoritesProvider>
   );
 }
 

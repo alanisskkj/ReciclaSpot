@@ -192,7 +192,6 @@ const styles = StyleSheet.create({
         textShadowRadius: 6,
     },
     heroSubtitle: {
-        fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
         fontSize: 18,
         lineHeight: 26,
         color: '#F4F9F4',

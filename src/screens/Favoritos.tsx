@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   FlatList,
   SafeAreaView,
@@ -9,62 +9,34 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { CompositeScreenProps } from '@react-navigation/native';
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { BottomTabParamList, RootStackParamList } from '../types/navigations';
+import { useFavorites } from '../contexts/FavoritesContext';
 
-const FAVORITOS_INICIAIS = [
-  {
-    id: '1',
-    nome: 'EcoPonto Esquina Verde',
-    categoria: 'Recicláveis Gerais',
-    endereco: 'Av. Prefeito Valdemar de Oliveira Lima, 1000',
-    bairro: 'Centro / Jardim Botânico',
-    horarioFuncionamento: 'Seg a Sex: 08:00 - 18:00 | Sáb: 08:00 - 14:00',
-    latitude: -21.7975,
-    longitude: -50.8789,
-    imagemUri: 'https://unsplash.com',
-    telefoneContato: '(18) 3528-1001',
-    aceitaEntulho: false,
-    materiaisResumo: 'Papel, plástico, vidro e metal.',
-    destaqueSocial: 'Troca recicláveis por hortaliças de uma horta comunitária no teto.',
-  },
-  {
-    id: '4',
-    nome: 'Ecoponto Central Tech',
-    categoria: 'Eletrônicos',
-    endereco: 'Av. das Nações, 1001',
-    bairro: 'Centro',
-    horarioFuncionamento: 'Seg a Sex: 08:30 - 17:30',
-    latitude: -21.7988,
-    longitude: -50.8805,
-    imagemUri: 'https://unsplash.com',
-    telefoneContato: '(18) 3528-4412',
-    aceitaEntulho: false,
-    materiaisResumo: 'Computadores, celulares, cabos e eletrodomésticos.',
-    destaqueSocial: 'Recondiciona computadores para inclusão digital de jovens.',
-  },
-];
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<BottomTabParamList, 'Favoritos'>,
+  NativeStackScreenProps<RootStackParamList>
+>;
 
-export default function Favoritos({ navigation }: any) {
-  const [favoritos, setFavoritos] = useState(FAVORITOS_INICIAIS);
-
-  const removerFavorito = (id: string) => {
-    setFavoritos((atual) => atual.filter((item) => item.id !== id));
-  };
+export default function Favoritos({ navigation }: Props) {
+  const { favorites, removeFavorite } = useFavorites();
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" background-color="#5DA654" />
-
+      <StatusBar barStyle="light-content" />
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Ionicons name="heart" size={24} color="#C4F99B" />
           <Text style={styles.headerTitle}>Ecopontos Favoritos</Text>
         </View>
-        <Text style={styles.counterBadge}>{favoritos.length} salvos</Text>
+        <Text style={styles.counterBadge}>{favorites.length} salvos</Text>
       </View>
 
       <View style={styles.body}>
         <FlatList
-          data={favoritos}
+          data={favorites}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
@@ -77,7 +49,7 @@ export default function Favoritos({ navigation }: any) {
               <View style={styles.cardHeader}>
                 <Text style={styles.cardTitle}>{item.nome}</Text>
                 <TouchableOpacity
-                  onPress={() => removerFavorito(item.id)}
+                  onPress={() => removeFavorite(item.id)}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
                   <Ionicons name="heart" size={22} color="#D64545" />

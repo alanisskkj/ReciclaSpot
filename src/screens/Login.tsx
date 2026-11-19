@@ -27,7 +27,7 @@ export default function Login() {
 
     return (
         <SafeAreaView style={styles.container}>
-            <StatusBar  background-color="#FFFFFF" barStyle="dark-content" />
+            <StatusBar barStyle="dark-content" />
 
             <KeyboardAvoidingView
                 style={{ flex: 1 }}
@@ -38,6 +38,8 @@ export default function Login() {
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                 >
+                    <View style={styles.blob1} />
+                    <View style={styles.blob2} />
                     {/* LOGO CENTRAL RECICLASPOT */}
                     <View style={styles.logoSection}>
                         <View style={styles.logoCircle}>
@@ -75,7 +77,7 @@ export default function Login() {
                                 <Ionicons
                                     name={mostrarSenha ? 'eye-outline' : 'eye-off-outline'}
                                     size={22}
-                                    color="#111"
+                                    color="#3D2314"
                                 />
                             </TouchableOpacity>
                         </View>
@@ -110,7 +112,7 @@ export default function Login() {
                             style={styles.socialButton}
                             onPress={() => Alert.alert('Google', 'Entrar com a conta do Google')}
                         >
-                            <FontAwesome name="google" size={22} color="#111" style={styles.socialIcon} />
+                            <FontAwesome name="google" size={22} color="#3D2314" style={styles.socialIcon} />
                             <Text style={styles.socialButtonText}>Entrar com a conta do Google</Text>
                         </TouchableOpacity>
 
@@ -118,7 +120,7 @@ export default function Login() {
                             style={styles.socialButton}
                             onPress={() => Alert.alert('Apple', 'Entrar com o Apple ID')}
                         >
-                            <FontAwesome name="apple" size={24} color="#111" style={styles.socialIcon} />
+                            <FontAwesome name="apple" size={24} color="#3D2314" style={styles.socialIcon} />
                             <Text style={styles.socialButtonText}>Entrar com o Apple ID</Text>
                         </TouchableOpacity>
                     </View>
@@ -131,27 +133,49 @@ export default function Login() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: '#ecf3ea',
     },
     scrollContent: {
         flexGrow: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        paddingHorizontal: 28,
-        paddingVertical: 30,
+        paddingHorizontal: 24,
+        paddingVertical: 36,
+    },
+
+    blob1: {
+        position: 'absolute',
+        width: 300,
+        height: 300,
+        borderRadius: 150,
+        backgroundColor: '#439245',
+        opacity: 0.1,
+        top: -80,
+        right: -80,
+    },
+
+    blob2: {
+        position: 'absolute',
+        width: 200,
+        height: 200,
+        borderRadius: 100,
+        backgroundColor: '#B9D7A7',
+        opacity: 0.35,
+        bottom: 80,
+        left: -60,
     },
     // Logo
     logoSection: {
         alignItems: 'center',
-        marginBottom: 42,
+        marginBottom: 34,
     },
     logoCircle: {
         width: 112,
         height: 112,
         borderRadius: 56,
-        backgroundColor: '#E8F8DC',
+        backgroundColor: '#FFFFFF',
         borderWidth: 3,
-        borderColor: '#65A65B',
+        borderColor: '#B9D7A7',
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 10,
@@ -159,7 +183,7 @@ const styles = StyleSheet.create({
     brandName: {
         fontSize: 24,
         fontWeight: '800',
-        color: '#1E7334',
+        color: '#3D2314',
         letterSpacing: 1,
     },
     // Campos
@@ -168,40 +192,42 @@ const styles = StyleSheet.create({
         marginBottom: 28,
     },
     label: {
-        fontSize: 13.5,
-        color: '#111',
-        fontFamily: 'serif',
-        marginBottom: 6,
-        marginLeft: 14,
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#3D2314',
+        marginBottom: 8,
+        marginLeft: 4,
     },
     input: {
         width: '100%',
-        height: 44,
-        backgroundColor: '#C5F99B',
-        borderRadius: 22,
-        paddingHorizontal: 18,
-        fontSize: 13,
-        color: '#1A3311',
-        fontFamily: 'serif',
-        marginBottom: 16,
+        height: 50,
+        backgroundColor: '#FFFFFF',
+        borderRadius: 16,
+        paddingHorizontal: 16,
+        fontSize: 14,
+        color: '#3D2314',
+        marginBottom: 18,
+        borderWidth: 1,
+        borderColor: '#D7E4D2',
     },
     passwordContainer: {
         width: '100%',
-        height: 44,
-        backgroundColor: '#C5F99B',
-        borderRadius: 22,
+        height: 50,
+        backgroundColor: '#FFFFFF',
+        borderRadius: 16,
         flexDirection: 'row',
         alignItems: 'center',
-        paddingLeft: 18,
+        paddingLeft: 16,
         paddingRight: 14,
-        marginBottom: 8,
+        marginBottom: 10,
+        borderWidth: 1,
+        borderColor: '#D7E4D2',
     },
     passwordInput: {
         flex: 1,
         height: '100%',
-        fontSize: 13,
-        color: '#1A3311',
-        fontFamily: 'serif',
+        fontSize: 14,
+        color: '#3D2314',
     },
     eyeButton: {
         padding: 4,
@@ -211,9 +237,9 @@ const styles = StyleSheet.create({
         marginLeft: 14,
     },
     forgotText: {
-        fontSize: 12.5,
-        color: '#111',
-        fontFamily: 'serif',
+        fontSize: 13,
+        color: '#439245',
+        fontWeight: '600',
     },
     // Botão Entrar e Links
     actionSection: {
@@ -222,19 +248,18 @@ const styles = StyleSheet.create({
         marginBottom: 22,
     },
     entrarButton: {
-        width: '56%',
-        height: 42,
-        backgroundColor: '#C5F99B',
-        borderRadius: 21,
+        width: '60%',
+        height: 48,
+        backgroundColor: '#439245',
+        borderRadius: 24,
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 10,
     },
     entrarButtonText: {
-        fontSize: 13.5,
+        fontSize: 14,
         fontWeight: 'bold',
-        color: '#1A3311',
-        fontFamily: 'serif',
+        color: '#FFFFFF',
         letterSpacing: 0.5,
     },
     registerRow: {
@@ -243,20 +268,18 @@ const styles = StyleSheet.create({
         marginBottom: 14,
     },
     registerText: {
-        fontSize: 12.5,
-        color: '#111',
-        fontFamily: 'serif',
+        fontSize: 13,
+        color: '#5A3A2A',
     },
     registerLink: {
-        fontSize: 12.5,
-        color: '#111',
+        fontSize: 13,
+        color: '#439245',
         fontWeight: 'bold',
-        fontFamily: 'serif',
     },
     orText: {
         fontSize: 13,
-        color: '#111',
-        fontFamily: 'serif',
+        color: '#5A3A2A',
+        fontWeight: '600',
     },
     // Botões Sociais
     socialSection: {
@@ -265,12 +288,14 @@ const styles = StyleSheet.create({
     },
     socialButton: {
         width: '100%',
-        height: 44,
-        backgroundColor: '#C5F99B',
-        borderRadius: 22,
+        height: 48,
+        backgroundColor: '#FFFFFF',
+        borderRadius: 18,
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 18,
+        borderWidth: 1,
+        borderColor: '#D7E4D2',
     },
     socialIcon: {
         marginRight: 14,
@@ -278,9 +303,8 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     socialButtonText: {
-        fontSize: 12.5,
-        color: '#5C7A4B',
-        fontFamily: 'serif',
+        fontSize: 13,
+        color: '#3D2314',
     },
 });
 

@@ -19,6 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Accelerometer } from 'expo-sensors';
 import NetInfo from '@react-native-community/netinfo';
 import { BottomTabParamList, PontoColeta, RootStackParamList } from '../types/navigations';
+import { useFavorites } from '../contexts/FavoritesContext';
 
 type Props = CompositeScreenProps<
     BottomTabScreenProps<BottomTabParamList, 'Explorar'>,
@@ -163,6 +164,7 @@ export default function Home({ navigation }: Props) {
     const [filtroMaterial, setFiltroMaterial] = useState<FiltroVisual>(null);
     const [isConnected, setIsConnected] = useState<boolean | null>(null);
     const [pontos, setPontos] = useState<PontoColetaItem[]>(PONTOS_INICIAIS);
+    const { favorites, isFavorite, toggleFavorite } = useFavorites();
 
     useEffect(() => {
         const unsubscribe = NetInfo.addEventListener((state) => {
@@ -223,43 +225,59 @@ export default function Home({ navigation }: Props) {
         setFiltroMaterial((atual) => (atual === material ? null : material));
     };
 
-    const renderEcoponto = ({ item }: { item: PontoColetaItem }) => (
-        <TouchableOpacity
-            style={styles.card}
-            activeOpacity={0.82}
-            onPress={() => navigation.navigate('DetalhesEcoponto', { ponto: item })}
-        >
-            <View style={styles.cardHeaderRow}>
-                <Text style={styles.cardTitle}>{item.nome}</Text>
-                <Text style={styles.cardArrow}>→</Text>
-            </View>
+    const renderEcoponto = ({ item }: { item: PontoColetaItem }) => {
+        const ehFavorito = isFavorite(item.id);
 
-            <View style={styles.badgeRow}>
-                <View style={styles.categoryBadge}>
-                    <Text style={styles.categoryBadgeText}>{item.categoria}</Text>
+        return (
+            <TouchableOpacity
+                style={styles.card}
+                activeOpacity={0.82}
+                onPress={() => navigation.navigate('DetalhesEcoponto', { ponto: item })}
+            >
+                <View style={styles.cardHeaderRow}>
+                    <Text style={styles.cardTitle}>{item.nome}</Text>
+                    <View style={styles.cardActions}>
+                        <TouchableOpacity
+                            onPress={() => toggleFavorite(item)}
+                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                            style={styles.heartButton}
+                        >
+                            <Ionicons
+                                name={ehFavorito ? 'heart' : 'heart-outline'}
+                                size={22}
+                                color={ehFavorito ? '#E53935' : '#888'}
+                            />
+                        </TouchableOpacity>
+                        <Text style={styles.cardArrow}>→</Text>
+                    </View>
                 </View>
-                <Text style={styles.bairroText}>📍 {item.bairro}</Text>
-            </View>
 
-            <View style={styles.bulletRow}>
-                <Text style={styles.bulletDot}>•</Text>
-                <Text style={styles.bulletTextBold}>
-                    O que recebe:{' '}
-                    <Text style={styles.bulletTextRegular}>{item.materiaisResumo}</Text>
-                </Text>
-            </View>
+                <View style={styles.badgeRow}>
+                    <View style={styles.categoryBadge}>
+                        <Text style={styles.categoryBadgeText}>{item.categoria}</Text>
+                    </View>
+                    <Text style={styles.bairroText}>📍 {item.bairro}</Text>
+                </View>
 
-            <View style={styles.bulletRow}>
-                <Text style={styles.bulletDot}>•</Text>
-                <Text style={styles.bulletTextRegular}>{item.destaqueSocial}</Text>
-            </View>
-        </TouchableOpacity>
-    );
+                <View style={styles.bulletRow}>
+                    <Text style={styles.bulletDot}>•</Text>
+                    <Text style={styles.bulletTextBold}>
+                        O que recebe:{' '}
+                        <Text style={styles.bulletTextRegular}>{item.materiaisResumo}</Text>
+                    </Text>
+                </View>
 
+                <View style={styles.bulletRow}>
+                    <Text style={styles.bulletDot}>•</Text>
+                    <Text style={styles.bulletTextRegular}>{item.destaqueSocial}</Text>
+                </View>
+            </TouchableOpacity>
+        );
+    };
 
     return (
         <SafeAreaView style={styles.safeArea}>
-            <StatusBar barStyle="light-content" background-color="#5DA654" />
+            <StatusBar barStyle="light-content" background-Color="#5DA654" />
 
             <View style={styles.topBar}>
                 <View style={styles.logoBox}>
@@ -268,112 +286,94 @@ export default function Home({ navigation }: Props) {
                 </View>
 
                 <View style={styles.topLinks}>
-                    <TouchableOpacity onPress={() => navigation.navigate('Mapa')}>
+                    <TouchableOpacity
+                        style={styles.topLinkButton}
+                        onPress={() => navigation.navigate('Favoritos')}
+                    >
+                        <Ionicons name="heart" size={18} color="#FFFFFF" />
+                        <Text style={styles.topLinkText}>
+                            Favoritos{favorites.length > 0 ? ` (${favorites.length})` : ''}
+                        </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={styles.topLinkButton}
+                        onPress={() => navigation.navigate('Mapa')}
+                    >
+                        <Ionicons name="map-outline" size={18} color="#FFFFFF" />
                         <Text style={styles.topLinkText}>Mapa</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => navigation.navigate('Perfil')}>
-                        <Text style={styles.topLinkText}>Perfil</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => navigation.navigate('Favoritos')}>
-                        <Text style={styles.topLinkText}>Favoritos</Text>
-                    </TouchableOpacity>
                 </View>
-
-                <TouchableOpacity
-                    onPress={() =>
-                        Alert.alert(
-                            'Status da Rede',
-                            isConnected
-                                ? 'Você está Online. Ecopontos sincronizados em tempo real.'
-                                : 'Modo Offline ativo. Exibindo ecopontos salvos no dispositivo.'
-                        )
-                    }
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                >
-                    <Ionicons name="menu" size={28} color="#111111" />
-                </TouchableOpacity>
             </View>
 
-            <Animated.View style={[styles.body, { opacity: fadeAnim }]}>
+            {isConnected === false && (
+                <View style={styles.offlineBanner}>
+                    <Ionicons name="cloud-offline-outline" size={16} color="#FFF" />
+                    <Text style={styles.offlineText}>
+                        Modo offline: exibindo pontos salvos localmente.
+                    </Text>
+                </View>
+            )}
+
+            <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
+                <View style={styles.searchContainer}>
+                    <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
+                    <TextInput
+                        style={styles.searchInput}
+                        placeholder="Buscar por bairro, nome ou material..."
+                        placeholderTextColor="#888"
+                        value={busca}
+                        onChangeText={setBusca}
+                    />
+                    {busca.length > 0 && (
+                        <TouchableOpacity onPress={() => setBusca('')}>
+                            <Ionicons name="close-circle" size={20} color="#888" />
+                        </TouchableOpacity>
+                    )}
+                </View>
+
+                <Text style={styles.sectionTitle}>Filtrar por Material</Text>
+                <View style={styles.materiaisGrid}>
+                    {COLUNAS_MATERIAIS.map((mat) => {
+                        const selecionado = filtroMaterial === mat.id;
+                        return (
+                            <TouchableOpacity
+                                key={mat.id}
+                                style={[
+                                    styles.materialCard,
+                                    { backgroundColor: mat.corFundo },
+                                    selecionado && styles.materialCardSelected,
+                                ]}
+                                activeOpacity={0.8}
+                                onPress={() => alternarFiltro(mat.id)}
+                            >
+                                <Text style={styles.materialTitle}>{mat.titulo}</Text>
+                                <Text style={styles.materialSubtitle}>{mat.subtitulo}</Text>
+                            </TouchableOpacity>
+                        );
+                    })}
+                </View>
+
+                <View style={styles.listHeader}>
+                    <Text style={styles.sectionTitle}>
+                        Pontos de Coleta ({pontosFiltrados.length})
+                    </Text>
+                    {filtroMaterial && (
+                        <TouchableOpacity onPress={() => setFiltroMaterial(null)}>
+                            <Text style={styles.clearFilterText}>Limpar filtro</Text>
+                        </TouchableOpacity>
+                    )}
+                </View>
+
                 <FlatList
                     data={pontosFiltrados}
                     keyExtractor={(item) => item.id}
                     renderItem={renderEcoponto}
                     contentContainerStyle={styles.listContent}
                     showsVerticalScrollIndicator={false}
-                    ListHeaderComponent={
-                        <View>
-                            <View style={styles.materialsBanner}>
-                                {COLUNAS_MATERIAIS.map((col, index) => {
-                                    const selecionado = filtroMaterial === col.id;
-                                    return (
-                                        <TouchableOpacity
-                                            key={col.id}
-                                            activeOpacity={0.85}
-                                            onPress={() => alternarFiltro(col.id)}
-                                            style={[
-                                                styles.materialColumn,
-                                                { backgroundColor: col.corFundo },
-                                                index === 0 && styles.firstColumn,
-                                                index === COLUNAS_MATERIAIS.length - 1 && styles.lastColumn,
-                                                selecionado && styles.materialColumnSelected,
-                                            ]}
-                                        >
-                                            <View style={styles.recycleIconCircle}>
-                                                <Ionicons name="sync" size={16} color="#FFFFFF" />
-                                            </View>
-                                            <Text style={styles.materialTitle}>{col.titulo}</Text>
-                                            <Text style={styles.materialSubtitle}>{col.subtitulo}</Text>
-                                        </TouchableOpacity>
-                                    );
-                                })}
-                            </View>
-
-                            <View style={styles.searchBar}>
-                                <TextInput
-                                    style={styles.searchInput}
-                                    value={busca}
-                                    onChangeText={setBusca}
-                                    placeholder="Busque o que você procura..."
-                                    placeholderTextColor="#5C8A4E"
-                                />
-                                {busca.length > 0 || filtroMaterial ? (
-                                    <TouchableOpacity
-                                        onPress={() => {
-                                            setBusca('');
-                                            setFiltroMaterial(null);
-                                        }}
-                                    >
-                                        <Ionicons name="close-circle" size={20} color="#2E6F2B" />
-                                    </TouchableOpacity>
-                                ) : (
-                                    <Ionicons name="search" size={19} color="#2E6F2B" />
-                                )}
-                            </View>
-
-                            <View style={styles.sectionHeader}>
-                                <View style={styles.sectionTitleRow}>
-                                    <Ionicons name="leaf" size={18} color="#5DA654" />
-                                    <Text style={styles.sectionTitle}>
-                                        Ecopontos Comunitários e Urbanos
-                                    </Text>
-                                </View>
-                                <View style={styles.statusRow}>
-                                    <View
-                                        style={[
-                                            styles.statusDot,
-                                            isConnected === false ? styles.dotOffline : styles.dotOnline,
-                                        ]}
-                                    />
-                                    <Text style={styles.statusLabel}>
-                                        {isConnected === false ? 'Offline' : 'Online'} • Chacoalhe para atualizar
-                                    </Text>
-                                </View>
-                            </View>
-                        </View>
-                    }
                     ListEmptyComponent={
-                        <View style={styles.emptyBox}>
+                        <View style={styles.emptyContainer}>
+                            <Ionicons name="leaf-outline" size={40} color="#999" />
                             <Text style={styles.emptyText}>
                                 Nenhum ecoponto encontrado para esse filtro.
                             </Text>
@@ -388,230 +388,226 @@ export default function Home({ navigation }: Props) {
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#5DA654',
+        backgroundColor: '#F4F7F4',
     },
     topBar: {
         backgroundColor: '#5DA654',
+        paddingHorizontal: 16,
+        paddingVertical: 14,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingTop: Platform.OS === 'android' ? 12 : 6,
-        paddingBottom: 12,
     },
     logoBox: {
-        alignItems: 'center',
-    },
-    logoText: {
-        fontSize: 9,
-        fontWeight: '800',
-        color: '#1A3A18',
-        marginTop: 2,
-    },
-    topLinks: {
-        flexDirection: 'row',
-        gap: 16,
-    },
-    topLinkText: {
-        fontSize: 13,
-        fontWeight: '700',
-        color: '#173615',
-    },
-    body: {
-        flex: 1,
-        backgroundColor: '#F6F7F6',
-    },
-    listContent: {
-        paddingHorizontal: 18,
-        paddingTop: 16,
-        paddingBottom: 28,
-    },
-    materialsBanner: {
-        flexDirection: 'row',
-        borderRadius: 14,
-        overflow: 'hidden',
-        marginBottom: 16,
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 4,
-    },
-    materialColumn: {
-        flex: 1,
-        alignItems: 'center',
-        paddingVertical: 14,
-        paddingHorizontal: 4,
-        borderWidth: 2,
-        borderColor: 'transparent',
-    },
-    firstColumn: {
-        borderTopLeftRadius: 14,
-        borderBottomLeftRadius: 14,
-    },
-    lastColumn: {
-        borderTopRightRadius: 14,
-        borderBottomRightRadius: 14,
-    },
-    materialColumnSelected: {
-        borderColor: '#2E7D32',
-    },
-    recycleIconCircle: {
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        backgroundColor: 'rgba(255,255,255,0.45)',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 8,
-    },
-    materialTitle: {
-        fontSize: 12,
-        fontWeight: '800',
-        color: '#111111',
-        marginTop: 4,
-    },
-    materialSubtitle: {
-        fontSize: 9,
-        color: '#222222',
-        textAlign: 'center',
-        marginTop: 3,
-        lineHeight: 12,
-    },
-    searchBar: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#C4F99B',
-        borderRadius: 24,
-        height: 44,
-        paddingHorizontal: 18,
-        marginBottom: 18,
-    },
-    searchInput: {
-        flex: 1,
-        fontSize: 13,
-        color: '#173615',
-    },
-    sectionHeader: {
-        marginBottom: 12,
-    },
-    sectionTitleRow: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 6,
     },
+    logoText: {
+        color: '#FFFFFF',
+        fontSize: 20,
+        fontWeight: '800',
+        letterSpacing: 0.6,
+    },
+    topLinks: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    topLinkButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 20,
+        gap: 4,
+    },
+    topLinkText: {
+        color: '#FFFFFF',
+        fontWeight: '600',
+        fontSize: 13,
+    },
+    offlineBanner: {
+        backgroundColor: '#D9534F',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 6,
+        gap: 6,
+    },
+    offlineText: {
+        color: '#FFFFFF',
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    container: {
+        flex: 1,
+        paddingHorizontal: 16,
+        paddingTop: 14,
+    },
+    searchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFFFFF',
+        borderRadius: 12,
+        paddingHorizontal: 12,
+        height: 46,
+        borderWidth: 1,
+        borderColor: '#E0E6E0',
+        marginBottom: 14,
+    },
+    searchIcon: {
+        marginRight: 8,
+    },
+    searchInput: {
+        flex: 1,
+        fontSize: 15,
+        color: '#333',
+    },
     sectionTitle: {
         fontSize: 16,
         fontWeight: '800',
-        color: '#111111',
+        color: '#2C3E2D',
+        marginBottom: 10,
     },
-    statusRow: {
+    materiaisGrid: {
         flexDirection: 'row',
-        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 8,
+        marginBottom: 16,
+    },
+    materialCard: {
+        flex: 1,
+        borderRadius: 12,
+        padding: 10,
+        minHeight: 88,
+        justifyContent: 'space-between',
+        borderWidth: 2,
+        borderColor: 'transparent',
+    },
+    materialCardSelected: {
+        borderColor: '#2C5E28',
+        transform: [{ scale: 1.02 }],
+    },
+    materialTitle: {
+        fontSize: 12,
+        fontWeight: '800',
+        color: '#1F2937',
+    },
+    materialSubtitle: {
+        fontSize: 10,
+        color: '#374151',
+        lineHeight: 13,
         marginTop: 4,
-        marginLeft: 2,
     },
-    statusDot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        marginRight: 6,
+    listHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
     },
-    dotOnline: {
-        backgroundColor: '#439245',
-    },
-    dotOffline: {
-        backgroundColor: '#C0392B',
-    },
-    statusLabel: {
-        fontSize: 11,
-        color: '#4F634D',
+    clearFilterText: {
+        color: '#5DA654',
         fontWeight: '600',
+        fontSize: 13,
+        marginBottom: 10,
+    },
+    listContent: {
+        paddingBottom: 24,
     },
     card: {
-        backgroundColor: '#C4F99B',
+        backgroundColor: '#FFFFFF',
         borderRadius: 14,
-        padding: 14,
-        marginBottom: 14,
+        padding: 16,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: '#E5EBE5',
         elevation: 2,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.08,
+        shadowRadius: 3,
     },
     cardHeaderRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+        marginBottom: 8,
     },
     cardTitle: {
-        fontSize: 14,
+        fontSize: 18,
         fontWeight: '800',
-        color: '#111111',
+        color: '#1E3A1E',
         flex: 1,
     },
+    cardActions: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+    },
+    heartButton: {
+        padding: 2,
+    },
     cardArrow: {
-        fontSize: 20,
-        fontWeight: '700',
-        color: '#111111',
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#5DA654',
     },
     badgeRow: {
         flexDirection: 'row',
         alignItems: 'center',
+        flexWrap: 'wrap',
         gap: 8,
-        marginTop: 6,
-        marginBottom: 8,
+        marginBottom: 10,
     },
     categoryBadge: {
-        backgroundColor: '#5DA654',
-        paddingHorizontal: 8,
-        paddingVertical: 3,
-        borderRadius: 10,
+        backgroundColor: '#E8F5E9',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 8,
     },
     categoryBadgeText: {
-        fontSize: 10,
+        color: '#2E7D32',
+        fontSize: 12,
         fontWeight: '700',
-        color: '#FFFFFF',
     },
     bairroText: {
-        fontSize: 11,
-        color: '#2A4728',
-        fontWeight: '600',
+        fontSize: 13,
+        color: '#555',
     },
     bulletRow: {
         flexDirection: 'row',
         alignItems: 'flex-start',
         marginTop: 4,
-        paddingRight: 8,
     },
     bulletDot: {
-        fontSize: 13,
-        fontWeight: '800',
-        color: '#111111',
+        fontSize: 14,
+        color: '#5DA654',
         marginRight: 6,
-        lineHeight: 17,
+        fontWeight: 'bold',
     },
     bulletTextBold: {
-        fontSize: 12,
+        fontSize: 13,
         fontWeight: '700',
-        color: '#111111',
-        lineHeight: 17,
+        color: '#333',
         flex: 1,
     },
     bulletTextRegular: {
-        fontSize: 12,
+        fontSize: 13,
         fontWeight: '400',
-        color: '#1A1A1A',
-        lineHeight: 17,
+        color: '#4B5563',
         flex: 1,
     },
-    emptyBox: {
-        paddingVertical: 32,
+    emptyContainer: {
         alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 40,
+        gap: 8,
     },
     emptyText: {
-        fontSize: 13,
-        color: '#5A6E58',
-        fontWeight: '600',
+        color: '#777',
+        fontSize: 14,
+        textAlign: 'center',
     },
 });
+
